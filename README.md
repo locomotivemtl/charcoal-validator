@@ -38,7 +38,7 @@ $ composer require locomotivemtl/charcoal-validator
 
 ## Dependencies
 
--   `PHP 5.5+`
+-   `PHP 5.6+`
 
 # Example usage
 
@@ -92,14 +92,17 @@ The only options available are the different types of validators to use
 
 Every validator is stateless, all _options_ must be passed directly to the constructor.
 
-Every validator have only one method: `validate($val)`. It always returns a _response object_
+Every validator have only one method: `validate($val)`. It always returns a _ValidationResult_ object.
 
 ## Available validators
 
 - ~~[Choice](#choice-validator)~~
 - ~~[Color](#color-validator)~~
-- ~~[Email](#email-validator)~~
+- [Date](#date-validator)
+- [Email](#email-validator)
 - [Empty](#empty-validator)
+- [Filesize](#filesize-validator)
+- [Filetype](#filetype-validator)
 - ~~[Ip](#ip-validator)~~
 - [Length](#length-validator)
 - [Null](#null-validator)
@@ -107,6 +110,17 @@ Every validator have only one method: `validate($val)`. It always returns a _res
 - ~~[Phone](#phone-validator)~~
 - [Regexp](#regexp-validator)
 - ~~[Url](#url-validator)~~
+
+## Date Validator
+
+The date validator ensures a value is a date-compatible string or a DateTime object and, optionally, in a specific range between `min` and `max`.
+
+### Options
+
+| Option            | Type      | Default       | Description |
+| ----------------- | --------- | ------------- | ----------- |
+| **min**           | `integer` | `0`           | The minimum date. If 0, empty or null, do not check.
+| **max**           | `integer` | `0`           | The maximum date. If 0, empty or null, do not check.
 
 ## Empty Validator
 
@@ -242,13 +256,13 @@ The Charcoal-View module follows the Charcoal coding-style:
 -   Read the [phpcs.xml](phpcs.xml) file for all the details on code style.
 
 > Coding style validation / enforcement can be performed with `composer phpcs`. An auto-fixer is also available with `composer phpcbf`.
+
+> This module should also throw no error when running `phpstan analyse -l7 src/`.
+
 ## Authors
 
 -   Mathieu Ducharme <mat@locomotive.ca>
 
-## Changelog
-
-_Unreleased_
 
 # License
 

@@ -10,12 +10,11 @@ class FilesizeValidator extends AbstractValidator
     /**
      * @var integer
      */
-    private $min;
-
+    private $min = 0;
     /**
      * @var integer
      */
-    private $max;
+    private $max = 0;
 
     /**
      * @var boolean
@@ -50,7 +49,7 @@ class FilesizeValidator extends AbstractValidator
     /**
      * Retrieves the minimum allowed  file size, in bytes.
      *
-     * @return integer|null
+     * @return integer
      */
     private function min()
     {
@@ -69,7 +68,7 @@ class FilesizeValidator extends AbstractValidator
     /**
      * Retrieves the maximum allowed file size, in bytes.
      *
-     * @return integer|null
+     * @return integer
      */
     private function max()
     {
@@ -141,47 +140,118 @@ class FilesizeValidator extends AbstractValidator
      */
     public function validate($val)
     {
-        if (!$this->min() && !$this->max() && !$this->php()) {
+        if ($this->hasMinOrMaxOrPhp() === false) {
             return $this->skip($val, 'filesize.skipped.no-min-max');
         }
 
         // Null values and empty strings should be handled by different validators.
-        if ($val === null || $val === '') {
+        if ($this->isValueEmpty($val) === true) {
             return $this->skip($val, 'filesize.skipped.empty-val');
         }
 
-        if (!is_string($val)) {
-            return $this->skip($val, 'filesize.skipped.invalid-file');
+        if ($this->isFileValid($val) === false) {
+            return $this->skip($val, 'filesize.failure.invalid-file');
         }
 
-        if (!is_file($val) || !is_readable($val)) {
-            return $this->skip($val, 'filesize.skipped.not-a-file');
+        $filesize = filesize($val);
+
+        if ($this->validateMin($filesize) === false) {
+            return $this->failure($val, 'filesze.failure.min');
         }
 
-        $val = filesize($val);
-
-        if ($this->min()) {
-            $valid = $val >= $this->min();
-            if (!$valid) {
-                return $this->failure($val, 'filesze.failure.min');
-            }
+        if ($this->validateMax($filesize) === false) {
+            return $this->failure($val, 'length.failure.max');
         }
 
-        if ($this->max()) {
-            $valid = $val <= $this->max();
-            if (!$valid) {
-                return $this->failure($val, 'length.failure.max');
-            }
-        }
-
-        if ($this->php()) {
-            $valid = $val <= $this->maxFilesizeAllowedByPhp();
-            if (!$valid) {
-                return $this->failure($val, 'filesize.failure.php');
-            }
+        if ($this->validatePhp($filesize) === false) {
+            return $this->failure($val, 'filesize.failure.php');
         }
 
         return $this->success($val, 'length.success');
+    }
+
+    /**
+     * @return boolean
+     */
+    private function hasMinOrMaxOrPhp()
+    {
+        if (($this->min() === 0) &&
+            ($this->max() === 0) &&
+            ($this->php() === false)) {
+            return false;
+        } else {
+            return true;
+        }
+    }
+
+    /**
+     * @param mixed $val The value to check for emptiness.
+     * @return boolean
+     */
+    private function isValueEmpty($val)
+    {
+        if ($val === null || $val === '') {
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    /**
+     * @param mixed $val The value to check if valid file.
+     * @return boolean
+     */
+    private function isFileValid($val)
+    {
+        if (!is_string($val)) {
+            return false;
+        }
+        if (!is_file($val)) {
+            return false;
+        }
+        if (!is_readable($val)) {
+            return false;
+        }
+        return true;
+    }
+
+    /**
+     * @param integer $filesize The file size to validate.
+     * @return boolean
+     */
+    private function validateMin($filesize)
+    {
+        if ($this->min() !== 0) {
+            return ($filesize >= $this->min());
+        } else {
+            return true;
+        }
+    }
+
+    /**
+     * @param integer $filesize The file size to validate.
+     * @return boolean
+     */
+    private function validateMax($filesize)
+    {
+        if ($this->max() !== 0) {
+            return ($filesize <= $this->max());
+        } else {
+            return true;
+        }
+    }
+
+    /**
+     * @param integer $filesize The file size to validate.
+     * @return boolean
+     */
+    private function validatePhp($filesize)
+    {
+        if ($this->php() === true) {
+            return ($filesize <= $this->maxFilesizeAllowedByPhp());
+        } else {
+            return true;
+        }
     }
 
     /**
@@ -192,11 +262,11 @@ class FilesizeValidator extends AbstractValidator
         return [
             'filesize.failure.min'            => sprintf('The file size must be at least %s bytes.', $this->min()),
             'filesize.failure.max'            => sprintf('The file size must be a maximum of %s bytes.', $this->max()),
-            'filesize.failure.php'          => sprintf('The file size is greater than maximum allowed by PHP (%s)', $this->maxFilesizeAllowedByPhp()),
-            'length.skipped.no-min-max'     => 'File size validation skipped, no min or max defined.',
-            'length.skipped.empty-val'      => 'File size validation skipped, value is empty.',
-            'length.skipped.invalid-type'   => 'File size validation skipped, value does not appear to be a file.',
-            'length.success'                => sprintf('The file size is between %s and %s bytes.', $this->min(), $this->max())
+            'filesize.failure.php'            => sprintf('The file size is greater than maximum allowed by PHP (%s)', $this->maxFilesizeAllowedByPhp()),
+            'filesize.skipped.no-min-max'     => 'File size validation skipped, no min or max defined.',
+            'filesize.skipped.empty-val'      => 'File size validation skipped, value is empty.',
+            'filesize.failure.invalid-type'   => 'File size validation skipped, value does not appear to be a file.',
+            'filesize.success'                => sprintf('The file size is between %s and %s bytes.', $this->min(), $this->max())
         ];
     }
 }

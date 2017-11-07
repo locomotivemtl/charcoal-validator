@@ -30,7 +30,6 @@ class ValidationRunner
 
     /**
      * @param array $data The constructor data, containing the validators.
-     * @return void
      */
     public function __construct(array $data)
     {
@@ -145,7 +144,7 @@ class ValidationRunner
             } else {
                 $dontContinue = $result->isSkipped();
             }
-            if (!$dontContinue && !$returnValid && $result->isValid()) {
+            if ($dontContinue === false && !$returnValid && $result->isValid()) {
                 continue;
             }
 

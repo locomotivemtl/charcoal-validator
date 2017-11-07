@@ -122,7 +122,7 @@ class ValidationResult implements JsonSerializable
     }
 
     /**
-     * @param DateTimeInterface|string|null $ts The date/time of the validation.
+     * @param DateTimeInterface|string $ts The date/time of the validation.
      * @throws InvalidArgumentException If the ts argument is not a valid datetime object or string.
      * @return void
      */

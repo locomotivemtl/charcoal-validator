@@ -49,32 +49,68 @@ class EmailValidator extends AbstractValidator
     {
 
         // Null values and empty strings should be handled by different validators.
-        if ($val === null || $val === '') {
+        if ($this->isValueEmpty($val) === true) {
             return $this->skip($val, 'email.skipped.empty-val');
         }
 
-        if (!is_scalar($val) && !(is_object($val) && method_exists($val, '__toString'))) {
+        if ($this->isValueValid($val) === false) {
             return $this->failure($val, 'email.failure.invalid-type');
         }
 
-        if (!is_string($val)) {
-            $val = (string)$val;
-        }
-
-        $emailValid = filter_var($val, FILTER_VALIDATE_EMAIL);
-        if (!$emailValid) {
+        if ($this->validateEmail($val) === false) {
             return $this->failure($val, 'email.failure.invalid-email');
         }
 
-        if ($this->mx()) {
-            $host = substr($val, (strrpos($val, '@') + 1));
-            $mxValid = checkdnsrr($host, 'MX');
-            if (!$mxValid) {
-                return $this->failure($val, 'email.failure.invalid-mx');
-            }
+        if ($this->validateMx($val) === false) {
+            return $this->failure($val, 'email.failure.invalid-mx');
         }
 
         return $this->success($val, 'email.success');
+    }
+
+    /**
+     * @param mixed $val The value to check for emptiness.
+     * @return boolean
+     */
+    private function isValueEmpty($val)
+    {
+        if ($val === null || $val === '') {
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    /**
+     * @param mixed $val The value to check as valid type.
+     * @return boolean
+     */
+    private function isValueValid($val)
+    {
+        return is_string($val);
+    }
+
+    /**
+     * @param string $val The string to validate as email.
+     * @return boolean
+     */
+    private function validateEmail($val)
+    {
+        return !!filter_var($val, FILTER_VALIDATE_EMAIL);
+    }
+
+    /**
+     * @param string $val The string (email) to validate MX record.
+     * @return boolean
+     */
+    private function validateMx($val)
+    {
+        if ($this->mx()) {
+            $host = substr($val, (strrpos($val, '@') + 1));
+            return checkdnsrr($host, 'MX');
+        } else {
+            return true;
+        }
     }
 
     /**
