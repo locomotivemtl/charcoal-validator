@@ -2,16 +2,15 @@
 
 namespace Charcoal\Validator;
 
-use \DateTime;
-use \DateTimeInterface;
-use \InvalidArgumentException;
-use \JsonSerializable;
-use \Serializable;
+use DateTime;
+use DateTimeInterface;
+use InvalidArgumentException;
+use JsonSerializable;
 
 /**
  *
  */
-class ValidationResult implements JsonSerializable, Serializable
+class ValidationResult implements JsonSerializable
 {
     const TYPE_SUCCESS = 'success';
     const TYPE_FAILURE = 'failure';
@@ -38,7 +37,7 @@ class ValidationResult implements JsonSerializable, Serializable
     private $message;
 
     /**
-     * @var \DateTimeInterface
+     * @var DateTimeInterface
      */
     private $ts;
 
@@ -49,29 +48,6 @@ class ValidationResult implements JsonSerializable, Serializable
     {
         $this->setTs('now');
         $this->setData($data);
-    }
-
-    /**
-     * @param array $data The constructor data.
-     * @return void
-     */
-    private function setData(array $data)
-    {
-        if (isset($data['value'])) {
-            $this->value = $data['value'];
-        }
-        if (isset($data['type'])) {
-            $this->type = (string)$data['type'];
-        }
-        if (isset($data['code'])) {
-            $this->code = (string)$data['code'];
-        }
-        if (isset($data['message'])) {
-            $this->message = (string)$data['message'];
-        }
-        if (isset($data['ts'])) {
-            $this->setTs($data['ts']);
-        }
     }
 
     /**
@@ -109,24 +85,26 @@ class ValidationResult implements JsonSerializable, Serializable
     }
 
     /**
-     * Serializable::serialize()
-     *
-     * @return string
-     */
-    public function serialize()
-    {
-        return serialize($this->serializeData());
-    }
-
-    /**
-     * Serializable::unserialize()
-     *
-     * @param mixed $data The data to unserialize.
+     * @param array $data The constructor data.
      * @return void
      */
-    public function unserialize($data)
+    private function setData(array $data)
     {
-        $this->setData(unserialize($data));
+        if (isset($data['value'])) {
+            $this->value = $data['value'];
+        }
+        if (isset($data['type'])) {
+            $this->type = (string)$data['type'];
+        }
+        if (isset($data['code'])) {
+            $this->code = (string)$data['code'];
+        }
+        if (isset($data['message'])) {
+            $this->message = (string)$data['message'];
+        }
+        if (isset($data['ts'])) {
+            $this->setTs($data['ts']);
+        }
     }
 
     /**

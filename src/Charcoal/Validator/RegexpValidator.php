@@ -28,25 +28,24 @@ class RegexpValidator extends AbstractValidator
 
     /**
      * @param string $pattern The validation regular expression.
-     * @return StringValidator Chainable
+     * @return void
      */
-    public function setPattern($pattern)
+    private function setPattern($pattern)
     {
         $this->pattern = $pattern;
-        return $this;
     }
 
     /**
      * @return string
      */
-    public function pattern()
+    private function pattern()
     {
         return $this->pattern;
     }
 
     /**
      * @param mixed $val The value to validate.
-     * @return ValidatorResult
+     * @return ValidationResult
      */
     public function validate($val)
     {
@@ -60,7 +59,7 @@ class RegexpValidator extends AbstractValidator
         }
 
         if (!is_scalar($val) && !(is_object($val) && method_exists($val, '__toString'))) {
-            return $this->skip('regexp.skipped.invalid-type');
+            return $this->skip($val, 'regexp.skipped.invalid-type');
         }
 
         $val = (string)$val;

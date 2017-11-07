@@ -2,9 +2,9 @@
 
 namespace Charcoal\Tests\Validator;
 
-use \PHPUnit_Framework_TestCase;
+use PHPUnit_Framework_TestCase;
 
-use \Charcoal\Validator\EmailValidator;
+use Charcoal\Validator\EmailValidator;
 
 /**
  *
@@ -34,6 +34,7 @@ class EmailValidatorTest extends PHPUnit_Framework_TestCase
     {
         $v = new EmailValidator();
         $this->assertFalse($v([])->isValid());
+        $this->assertFalse($v(1)->isValid());
     }
 
     public function testMX()
@@ -44,5 +45,4 @@ class EmailValidatorTest extends PHPUnit_Framework_TestCase
         $this->assertTrue($v('foo@gmail.com')->isValid());
         $this->assertFalse($v('foo@invalidmx.invalid')->isValid());
     }
-
 }

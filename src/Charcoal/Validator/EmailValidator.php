@@ -2,7 +2,7 @@
 
 namespace Charcoal\Validator;
 
-use \Charcoal\Validator\AbstractValidator;
+use Charcoal\Validator\AbstractValidator;
 
 /**
  *
@@ -25,7 +25,7 @@ class EmailValidator extends AbstractValidator
     }
 
     /**
-     * @param string $mx The MX (check MX record) flag.
+     * @param boolean $mx The MX (check MX record) flag.
      * @return  void
      */
     private function setMx($mx)
@@ -34,7 +34,7 @@ class EmailValidator extends AbstractValidator
     }
 
     /**
-     * @return string
+     * @return boolean
      */
     private function mx()
     {
@@ -57,7 +57,9 @@ class EmailValidator extends AbstractValidator
             return $this->failure($val, 'email.failure.invalid-type');
         }
 
-        $val = (string)$val;
+        if (!is_string($val)) {
+            $val = (string)$val;
+        }
 
         $emailValid = filter_var($val, FILTER_VALIDATE_EMAIL);
         if (!$emailValid) {

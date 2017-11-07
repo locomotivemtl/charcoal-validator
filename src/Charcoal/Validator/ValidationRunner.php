@@ -15,12 +15,16 @@ class ValidationRunner
     const LEVEL_INFO    = 'infos';
 
     /**
+     * The validators set on the runner.
+     *
      * @var ValidatorInterface[]
      */
     private $validators;
 
     /**
-     * @var ValidatorResult[]
+     * Results of the validation.
+     *
+     * @var array
      */
     private $results;
 
@@ -45,7 +49,7 @@ class ValidationRunner
      * @param mixed   $val           The value to validate.
      * @param boolean $returnSkipped If false (default), the skipped results will be ignored. If true, they will be returned.
      * @param boolean $returnValid   If false (default), the valid results will be ignored. If true, they will be returned.
-     * @return ValidationResult[]
+     * @return array
      */
     public function validate($val, $returnSkipped = false, $returnValid = false)
     {
@@ -93,10 +97,10 @@ class ValidationRunner
      */
     public function warnings($returnSkipped = false, $returnValid = false)
     {
-        if (!isset($this->results[self::LEVEL_ERROR])) {
+        if (!isset($this->results[self::LEVEL_WARNING])) {
             return [];
         }
-        return $this->parseResults($this->results[self::LEVEL_ERROR], $returnSkipped, $returnValid);
+        return $this->parseResults($this->results[self::LEVEL_WARNING], $returnSkipped, $returnValid);
     }
 
     /**
@@ -123,38 +127,6 @@ class ValidationRunner
         } else {
             return $this->isLevelValid($level);
         }
-    }
-
-    /**
-     * @param string $level The leve to check.
-     * @return boolean
-     */
-    private function isLevelValid($level)
-    {
-        if (!isset($this->results[$level])) {
-            return true;
-        }
-        foreach ($this->results[$level] as $result) {
-            if (!$result->isValid()) {
-                return false;
-            }
-        }
-        return true;
-    }
-
-    /**
-     * @return boolean
-     */
-    private function allLevelsValid()
-    {
-        foreach ($this->results as $level => $results) {
-            foreach ($results as $result) {
-                if (!$result->isValid()) {
-                    return false;
-                }
-            }
-        }
-        return true;
     }
 
     /**
@@ -223,5 +195,37 @@ class ValidationRunner
             $res = $validator($val);
             $this->results[$level][$res->code()] = $res;
         }
+    }
+
+    /**
+     * @param string $level The leve to check.
+     * @return boolean
+     */
+    private function isLevelValid($level)
+    {
+        if (!isset($this->results[$level])) {
+            return true;
+        }
+        foreach ($this->results[$level] as $result) {
+            if (!$result->isValid()) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    /**
+     * @return boolean
+     */
+    private function allLevelsValid()
+    {
+        foreach ($this->results as $level => $results) {
+            foreach ($results as $result) {
+                if (!$result->isValid()) {
+                    return false;
+                }
+            }
+        }
+        return true;
     }
 }

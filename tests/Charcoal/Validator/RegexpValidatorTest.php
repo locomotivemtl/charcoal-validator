@@ -2,9 +2,9 @@
 
 namespace Charcoal\Tests\Validator;
 
-use \PHPUnit_Framework_TestCase;
+use PHPUnit_Framework_TestCase;
 
-use \Charcoal\Validator\RegexpValidator;
+use Charcoal\Validator\RegexpValidator;
 
 /**
  *

@@ -2,12 +2,9 @@
 
 namespace Charcoal\Validator;
 
-// PHP dependencies
-use \InvalidArgumentException;
-
 // Local depenencies
-use \Charcoal\Validator\AbstractValidator;
-use \Charcoal\Validator\ValidationResult;
+use Charcoal\Validator\AbstractValidator;
+use Charcoal\Validator\ValidationResult;
 
 /**
  * Length validator ensures a string is of a certain length.
@@ -58,11 +55,11 @@ class LengthValidator extends AbstractValidator
      */
     private function setMin($min)
     {
-        $this->min = (int)$min;
+        $this->min = intval($min);
     }
 
     /**
-     * @return integer The minimum length.
+     * @return integer
      */
     private function min()
     {
@@ -70,16 +67,16 @@ class LengthValidator extends AbstractValidator
     }
 
     /**
-     * @param boolean $max The allow-alpha flag.
+     * @param boolean $max The maximum allowed length . (0 = no limit).
      * @return void
      */
     private function setMax($max)
     {
-        $this->max = (int)$max;
+        $this->max = intval($max);
     }
 
     /**
-     * @return boolean
+     * @return integer
      */
     private function max()
     {
@@ -96,7 +93,7 @@ class LengthValidator extends AbstractValidator
     }
 
     /**
-     * @return string
+     * @return boolean
      */
     private function unicode()
     {
@@ -131,7 +128,7 @@ class LengthValidator extends AbstractValidator
                 $valid = (strlen($val) >= $this->min());
             }
             if (!$valid) {
-                return $this->failure($val, 'length.min');
+                return $this->failure($val, 'length.failure.min');
             }
         }
 
@@ -142,7 +139,7 @@ class LengthValidator extends AbstractValidator
                 $valid = (strlen($val) <= $this->max());
             }
             if (!$valid) {
-                return $this->failure($val, 'length.max');
+                return $this->failure($val, 'length.failure.max');
             }
         }
 
@@ -156,11 +153,11 @@ class LengthValidator extends AbstractValidator
     {
         return [
             'length.failure.min'            => sprintf('The value must be at least %s characters.', $this->min()),
-            'length.failure.max'            => sprintf('The value must be a maximum of %s characters.', $this->min()),
+            'length.failure.max'            => sprintf('The value must be a maximum of %s characters.', $this->max()),
             'length.skipped.no-min-max'     => 'Length validation skipped, no min or max defined.',
             'length.skipped.empty-val'      => 'Length validation skipped, value is empty.',
             'length.skipped.invalid-type'   => 'Length validation skipped, value not a string.',
-            'length.success'   => sprintf('The value is between %s and %s characters.', $this->min(), $this->max())
+            'length.success'                => sprintf('The value is between %s and %s characters.', $this->min(), $this->max())
         ];
     }
 }

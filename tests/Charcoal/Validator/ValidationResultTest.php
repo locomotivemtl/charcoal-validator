@@ -32,24 +32,6 @@ class ValidationResultTest extends PHPUnit_Framework_TestCase
         $this->assertEquals($arr['value'], 'test');
     }
 
-    /**
-     *
-     */
-    public function testSerialize()
-    {
-        $r = new ValidationResult([
-            'type' => ValidationResult::TYPE_FAILURE,
-            'code' => 'foo',
-            'message' => 'foobar',
-            'value' => 'test'
-        ]);
-
-        $serialized = serialize($r);
-        $r2 = unserialize($serialized);
-
-        $this->assertEquals($r, $r2);
-    }
-
     public function testConstructorInvalidTsThrowsException()
     {
         $this->setExpectedException('\Exception');

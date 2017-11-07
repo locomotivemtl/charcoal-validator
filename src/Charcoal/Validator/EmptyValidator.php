@@ -2,8 +2,8 @@
 
 namespace Charcoal\Validator;
 
-use \Charcoal\Validator\AbstractValidator;
-use \Charcoal\Validator\ValidationResult;
+use Charcoal\Validator\AbstractValidator;
+use Charcoal\Validator\ValidationResult;
 
 /**
  * Ensures a value is not empty.
@@ -26,9 +26,8 @@ class EmptyValidator extends AbstractValidator
         }
     }
 
-
     /**
-     * @param string $requireEmpty The requireEmpty (multibytes) flag.
+     * @param boolean $requireEmpty The requireEmpty (multibytes) flag.
      * @return  void
      */
     private function setRequireEmpty($requireEmpty)
@@ -37,7 +36,7 @@ class EmptyValidator extends AbstractValidator
     }
 
     /**
-     * @return string
+     * @return boolean
      */
     private function requireEmpty()
     {

@@ -2,8 +2,8 @@
 
 namespace Charcoal\Validator;
 
-use \Charcoal\Validator\AbstractValidator;
-use \Charcoal\Validator\ValidationResult;
+use Charcoal\Validator\AbstractValidator;
+use Charcoal\Validator\ValidationResult;
 
 /**
  * Ensures a value is not null.
@@ -28,7 +28,7 @@ class NullValidator extends AbstractValidator
 
 
     /**
-     * @param string $requireNull The requireNull (multibytes) flag.
+     * @param boolean $requireNull The requireNull (multibytes) flag.
      * @return  void
      */
     private function setRequireNull($requireNull)
@@ -37,7 +37,7 @@ class NullValidator extends AbstractValidator
     }
 
     /**
-     * @return string
+     * @return boolean
      */
     private function requireNull()
     {

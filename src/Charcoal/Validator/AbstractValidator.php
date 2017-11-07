@@ -2,8 +2,8 @@
 
 namespace Charcoal\Validator;
 
-use \Charcoal\Validator\ValidationResult;
-use \Charcoal\Validator\ValidatorInterface;
+use Charcoal\Validator\ValidationResult;
+use Charcoal\Validator\ValidatorInterface;
 
 /**
  *
@@ -77,7 +77,7 @@ abstract class AbstractValidator implements ValidatorInterface
             'value'     => $value,
             'type'      => ValidationResult::TYPE_SUCCESS,
             'code'      => $code,
-            'message'   => ''
+            'message'   => $this->message($code)
         ]);
     }
 
@@ -86,12 +86,17 @@ abstract class AbstractValidator implements ValidatorInterface
      *
      * Skip results are better left blank.
      *
+     * @param mixed  $value The value that was skipped.
+     * @param string $code  The validator code that was skipped.
      * @return ValidationResult
      */
-    protected function skip()
+    protected function skip($value, $code)
     {
         return new ValidationResult([
-            'type'      => ValidationResult::TYPE_SKIPPED
+            'value'     => $value,
+            'type'      => ValidationResult::TYPE_SKIPPED,
+            'code'      => $code,
+            'message'   => $this->message($code)
         ]);
     }
 }
