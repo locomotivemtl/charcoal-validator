@@ -75,7 +75,7 @@ class FiletypeValidator extends AbstractValidator
         }
 
         if ($this->isFileValid($val) === false) {
-            if ($this->checkFile == true) {
+            if ($this->checkFile === true) {
                 return $this->failure($val, 'filetype.failure.invalid-file');
             } else {
                 return $this->skip($val, 'filetype.skipped.invalid-file');

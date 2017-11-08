@@ -72,7 +72,7 @@ class FilesizeValidator extends AbstractValidator
         }
 
         if ($this->isFileValid($val) === false) {
-            if ($this->checkFile == true) {
+            if ($this->checkFile === true) {
                 return $this->failure($val, 'filesize.failure.invalid-file');
             } else {
                 return $this->skip($val, 'filesize.skipped.invalid-file');
