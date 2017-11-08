@@ -283,11 +283,11 @@ $ composer test
 | [Travis](https://travis-ci.org/locomotivemtl/charcoal-validator) | [![Build Status](https://travis-ci.org/locomotivemtl/charcoal-validator.svg?branch=master)](https://travis-ci.org/locomotivemtl/charcoal-validator) | Runs code sniff check and unit tests. Auto-generates API documentation. |
 | [Scrutinizer](https://scrutinizer-ci.com/g/locomotivemtl/charcoal-validator/) | [![Scrutinizer Code Quality](https://scrutinizer-ci.com/g/locomotivemtl/charcoal-validator/badges/quality-score.png?b=master)](https://scrutinizer-ci.com/g/locomotivemtl/charcoal-validator/?branch=master) | Code quality checker. Also validates API documentation quality. |
 | [Coveralls](https://coveralls.io/github/locomotivemtl/charcoal-validator) | [![Coverage Status](https://coveralls.io/repos/github/locomotivemtl/charcoal-validator/badge.svg?branch=master)](https://coveralls.io/github/locomotivemtl/charcoal-validator?branch=master) | Unit Tests code coverage. |
-| [Sensiolabs](https://insight.sensiolabs.com/projects/396d2f06-82ba-4c79-b8cc-762f1e8bda29) | [![SensioLabsInsight](https://insight.sensiolabs.com/projects/396d2f06-82ba-4c79-b8cc-762f1e8bda29/mini.png)](https://insight.sensiolabs.com/projects/396d2f06-82ba-4c79-b8cc-762f1e8bda29) | Another code quality checker, focused on PHP. |
+| [Sensiolabs](https://insight.sensiolabs.com/projects/5c21a1cf-9b21-41c8-82a8-90fbad808a20) | [![SensioLabsInsight](https://insight.sensiolabs.com/projects/5c21a1cf-9b21-41c8-82a8-90fbad808a20/mini.png)](https://insight.sensiolabs.com/projects/5c21a1cf-9b21-41c8-82a8-90fbad808a20) | Another code quality checker, focused on PHP. |
 
 ## Coding Style
 
-The Charcoal-View module follows the Charcoal coding-style:
+The Charcoal-Validator module follows the Charcoal coding-style:
 
 -   [_PSR-1_](https://github.com/php-fig/fig-standards/blob/master/accepted/PSR-1-basic-coding-standard.md)
 -   [_PSR-2_](https://github.com/php-fig/fig-standards/blob/master/accepted/PSR-2-coding-style-guide.md)
