@@ -8,7 +8,7 @@ use Charcoal\Validator\ValidatorInterface;
 /**
  *
  */
-abstract class AbstractValidator implements ValidatorInterface
+abstract class Validator implements ValidatorInterface
 {
     /**
      * @param mixed $val The value to test / validate.
@@ -27,24 +27,9 @@ abstract class AbstractValidator implements ValidatorInterface
      * @param mixed $val The value to test / validate.
      * @return ValidationResult
      */
-    public function __invoke($val)
+    final public function __invoke($val)
     {
         return $this->validate($val);
-    }
-
-    /**
-     * @param string $code The validator code to retrieve the message from.
-     * @see self:messages()
-     * @return string
-     */
-    protected function message($code)
-    {
-        $messages = $this->messages();
-        if (isset($messages[$code])) {
-            return $messages[$code];
-        } else {
-            return '';
-        }
     }
 
     /**
@@ -54,7 +39,7 @@ abstract class AbstractValidator implements ValidatorInterface
      * @param string $code  The validator code that failed.
      * @return ValidationResult
      */
-    protected function failure($value, $code)
+    final protected function failure($value, $code)
     {
         return new ValidationResult([
             'value'     => $value,
@@ -71,7 +56,7 @@ abstract class AbstractValidator implements ValidatorInterface
      * @param string $code  The validator code that succeeded.
      * @return ValidationResult
      */
-    protected function success($value, $code)
+    final protected function success($value, $code)
     {
         return new ValidationResult([
             'value'     => $value,
@@ -90,7 +75,7 @@ abstract class AbstractValidator implements ValidatorInterface
      * @param string $code  The validator code that was skipped.
      * @return ValidationResult
      */
-    protected function skip($value, $code)
+    final protected function skip($value, $code)
     {
         return new ValidationResult([
             'value'     => $value,
@@ -98,5 +83,20 @@ abstract class AbstractValidator implements ValidatorInterface
             'code'      => $code,
             'message'   => $this->message($code)
         ]);
+    }
+
+    /**
+     * @param string $code The validator code to retrieve the message from.
+     * @see self:messages()
+     * @return string
+     */
+    private function message($code)
+    {
+        $messages = $this->messages();
+        if (isset($messages[$code])) {
+            return $messages[$code];
+        } else {
+            return '';
+        }
     }
 }

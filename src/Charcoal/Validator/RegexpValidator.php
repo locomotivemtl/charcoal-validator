@@ -2,8 +2,7 @@
 
 namespace Charcoal\Validator;
 
-use \Charcoal\Validator\AbstractValidator;
-use \Charcoal\Validator\ValidationResult;
+use Charcoal\Validator\Validator as AbstractValidator;
 
 /**
  * Regexp validator
@@ -22,25 +21,8 @@ class RegexpValidator extends AbstractValidator
     public function __construct(array $data = [])
     {
         if (isset($data['pattern'])) {
-            $this->setPattern($data['pattern']);
+            $this->pattern = strval($data['pattern']);
         }
-    }
-
-    /**
-     * @param string $pattern The validation regular expression.
-     * @return void
-     */
-    private function setPattern($pattern)
-    {
-        $this->pattern = $pattern;
-    }
-
-    /**
-     * @return string
-     */
-    private function pattern()
-    {
-        return $this->pattern;
     }
 
     /**
@@ -49,7 +31,7 @@ class RegexpValidator extends AbstractValidator
      */
     public function validate($val)
     {
-        if (!$this->pattern()) {
+        if ($this->pattern === '') {
             return $this->skip($val, 'regexp.skipped.no-pattern');
         }
 
@@ -64,7 +46,7 @@ class RegexpValidator extends AbstractValidator
 
         $val = (string)$val;
 
-        $valid = !!preg_match($this->pattern(), $val);
+        $valid = !!preg_match($this->pattern, $val);
 
         if ($valid) {
             return $this->success($val, 'regexp.success');
@@ -80,9 +62,9 @@ class RegexpValidator extends AbstractValidator
     {
         return [
             'regexp.failure.no-match'       => 'The value does not match the pattern.',
-            'length.skipped.no-min-max'     => 'Regexp validation skipped, no min or max defined.',
-            'length.skipped.empty-val'      => 'Regexp validation skipped, value is empty.',
-            'length.skipped.invalid-type'   => 'Regexp validation skipped, value not a string.',
+            'regexp.skipped.no-pattern'     => 'Regexp validation skipped, regexp pattern defined.',
+            'regexp.skipped.empty-val'      => 'Regexp validation skipped, value is empty.',
+            'regexp.skipped.invalid-type'   => 'Regexp validation skipped, value not a string.',
             'regexp.success'   => 'The value matches the pattern.'
         ];
     }

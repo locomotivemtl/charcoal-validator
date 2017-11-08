@@ -5,6 +5,7 @@ namespace Charcoal\Tests\Validator;
 use PHPUnit_Framework_TestCase;
 
 use Exception;
+use StdClass;
 
 use Charcoal\Validator\NumberValidator;
 
@@ -28,9 +29,21 @@ class NumberValidatorTest extends PHPUnit_Framework_TestCase
             'min' => 4,
             'max' => null
         ]);
+        $this->assertFalse($v(0)->isValid());
         $this->assertFalse($v(3)->isValid());
         $this->assertTrue($v(4)->isValid());
         $this->assertTrue($v(5)->isValid());
+    }
+
+    public function testMinReturnCode()
+    {
+        $v = new NumberValidator([
+            'min' => 4
+        ]);
+        $this->assertEquals('number.failure.min', $v(0)->code());
+        $this->assertEquals('number.failure.min', $v(3)->code());
+        $this->assertEquals('number.success', $v(4)->code());
+        $this->assertEquals('number.success', $v(5)->code());
     }
 
     public function testMax()
@@ -39,9 +52,21 @@ class NumberValidatorTest extends PHPUnit_Framework_TestCase
             'min' => null,
             'max' => 4
         ]);
+        $this->assertTrue($v(0)->isValid());
         $this->assertTrue($v(3.9)->isValid());
         $this->assertTrue($v(4.0)->isValid());
         $this->assertFalse($v(4.1)->isValid());
+    }
+
+    public function testMaxReturnCode()
+    {
+        $v = new NumberValidator([
+            'max' => 4
+        ]);
+        $this->assertEquals('number.success', $v(0)->code());
+        $this->assertEquals('number.success', $v(3.9)->code());
+        $this->assertEquals('number.success', $v(4.0)->code());
+        $this->assertEquals('number.failure.max', $v(4.1)->code());
     }
 
     public function testMinMax()
@@ -74,6 +99,16 @@ class NumberValidatorTest extends PHPUnit_Framework_TestCase
         $this->assertFalse($v(0)->isSkipped());
     }
 
+    public function testSkipEmptyOrNullReturnCode()
+    {
+        $v = new NumberValidator([
+            'min' => 3,
+            'max' => 4
+        ]);
+        $this->assertEquals('number.skipped.empty-val', $v(null)->code());
+        $this->assertEquals('number.skipped.empty-val', $v('')->code());
+    }
+
     public function testSkipInvalidType()
     {
         $v = new NumberValidator([
@@ -81,8 +116,7 @@ class NumberValidatorTest extends PHPUnit_Framework_TestCase
             'max' => 4
         ]);
         $this->assertTrue($v([1,2,3])->isSkipped());
-        $obj = new \StdClass();
-        $this->assertTrue($v($obj)->isSkipped());
+        $this->assertTrue($v(new StdClass)->isSkipped());
     }
 
     public function testInvalidMinThrowsException()

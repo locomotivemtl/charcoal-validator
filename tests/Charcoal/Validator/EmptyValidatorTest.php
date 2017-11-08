@@ -17,7 +17,7 @@ class EmptyValidatorTest extends PHPUnit_Framework_TestCase
         $this->doTestIsNotEmptyValidator($v);
     }
 
-    public function testEmpty()
+    public function testRequireEmptyIsTrue()
     {
         $v = new EmptyValidator([
             'require_empty' => true
@@ -25,13 +25,32 @@ class EmptyValidatorTest extends PHPUnit_Framework_TestCase
         $this->doTestIsEmptyValidator($v);
     }
 
-    public function testNotEmpty()
+    public function testRequireEmptyIsTrueReturnCode()
+    {
+        $v = new EmptyValidator([
+            'require_empty' => true
+        ]);
+        $this->assertEquals('empty.success.is-empty', $v('')->code());
+        $this->assertEquals('empty.failure.is-not-empty', $v('foo')->code());
+    }
+
+    public function testRequireEmptyIsFalse()
     {
         $v = new EmptyValidator([
             'require_empty' => false
         ]);
         $this->doTestIsNotEmptyValidator($v);
     }
+
+    public function testRequireEmptyIsFalseReturnCode()
+    {
+        $v = new EmptyValidator([
+            'require_empty' => false
+        ]);
+        $this->assertEquals('empty.success.is-not-empty', $v('foo')->code());
+        $this->assertEquals('empty.failure.is-empty', $v('')->code());
+    }
+
 
     protected function doTestIsEmptyValidator(EmptyValidator $v)
     {

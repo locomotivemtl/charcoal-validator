@@ -2,8 +2,7 @@
 
 namespace Charcoal\Validator;
 
-use Charcoal\Validator\AbstractValidator;
-use Charcoal\Validator\ValidationResult;
+use Charcoal\Validator\Validator as AbstractValidator;
 
 /**
  * Ensures a value is not empty.
@@ -22,25 +21,8 @@ class EmptyValidator extends AbstractValidator
     public function __construct(array $data = [])
     {
         if (isset($data['require_empty'])) {
-            $this->setRequireEmpty($data['require_empty']);
+            $this->requireEmpty = !!$data['require_empty'];
         }
-    }
-
-    /**
-     * @param boolean $requireEmpty The requireEmpty (multibytes) flag.
-     * @return  void
-     */
-    private function setRequireEmpty($requireEmpty)
-    {
-        $this->requireEmpty = !!$requireEmpty;
-    }
-
-    /**
-     * @return boolean
-     */
-    private function requireEmpty()
-    {
-        return $this->requireEmpty;
     }
 
     /**
@@ -49,7 +31,7 @@ class EmptyValidator extends AbstractValidator
      */
     public function validate($val)
     {
-        if ($this->requireEmpty()) {
+        if ($this->requireEmpty) {
             return $this->validateIsEmpty($val);
         } else {
             return $this->validateIsNotEmpty($val);

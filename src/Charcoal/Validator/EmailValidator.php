@@ -2,7 +2,7 @@
 
 namespace Charcoal\Validator;
 
-use Charcoal\Validator\AbstractValidator;
+use Charcoal\Validator\Validator as AbstractValidator;
 
 /**
  *
@@ -20,25 +20,8 @@ class EmailValidator extends AbstractValidator
     public function __construct(array $data = [])
     {
         if (isset($data['mx'])) {
-            $this->setMx($data['mx']);
+            $this->mx = !!$data['mx'];
         }
-    }
-
-    /**
-     * @param boolean $mx The MX (check MX record) flag.
-     * @return  void
-     */
-    private function setMx($mx)
-    {
-        $this->mx = !!$mx;
-    }
-
-    /**
-     * @return boolean
-     */
-    private function mx()
-    {
-        return $this->mx;
     }
 
     /**
@@ -49,11 +32,11 @@ class EmailValidator extends AbstractValidator
     {
 
         // Null values and empty strings should be handled by different validators.
-        if ($this->isValueEmpty($val) === true) {
+        if ($val === null || $val === '') {
             return $this->skip($val, 'email.skipped.empty-val');
         }
 
-        if ($this->isValueValid($val) === false) {
+        if (is_string($val) === false) {
             return $this->failure($val, 'email.failure.invalid-type');
         }
 
@@ -68,27 +51,6 @@ class EmailValidator extends AbstractValidator
         return $this->success($val, 'email.success');
     }
 
-    /**
-     * @param mixed $val The value to check for emptiness.
-     * @return boolean
-     */
-    private function isValueEmpty($val)
-    {
-        if ($val === null || $val === '') {
-            return true;
-        } else {
-            return false;
-        }
-    }
-
-    /**
-     * @param mixed $val The value to check as valid type.
-     * @return boolean
-     */
-    private function isValueValid($val)
-    {
-        return is_string($val);
-    }
 
     /**
      * @param string $val The string to validate as email.
@@ -105,7 +67,7 @@ class EmailValidator extends AbstractValidator
      */
     private function validateMx($val)
     {
-        if ($this->mx()) {
+        if ($this->mx) {
             $host = substr($val, (strrpos($val, '@') + 1));
             return checkdnsrr($host, 'MX');
         } else {

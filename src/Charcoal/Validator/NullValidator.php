@@ -2,8 +2,7 @@
 
 namespace Charcoal\Validator;
 
-use Charcoal\Validator\AbstractValidator;
-use Charcoal\Validator\ValidationResult;
+use Charcoal\Validator\Validator as AbstractValidator;
 
 /**
  * Ensures a value is not null.
@@ -22,27 +21,10 @@ class NullValidator extends AbstractValidator
     public function __construct(array $data = [])
     {
         if (isset($data['require_null'])) {
-            $this->setRequireNull($data['require_null']);
+            $this->requireNull = !!$data['require_null'];
         }
     }
 
-
-    /**
-     * @param boolean $requireNull The requireNull (multibytes) flag.
-     * @return  void
-     */
-    private function setRequireNull($requireNull)
-    {
-        $this->requireNull = !!$requireNull;
-    }
-
-    /**
-     * @return boolean
-     */
-    private function requireNull()
-    {
-        return $this->requireNull;
-    }
 
     /**
      * @param mixed $val The value to validate.
@@ -50,7 +32,7 @@ class NullValidator extends AbstractValidator
      */
     public function validate($val)
     {
-        if ($this->requireNull()) {
+        if ($this->requireNull) {
             return $this->validateIsNull($val);
         } else {
             return $this->validateIsNotNull($val);
@@ -64,7 +46,7 @@ class NullValidator extends AbstractValidator
     protected function validateIsNull($val)
     {
         if ($val !== null) {
-            return $this->failure($val, 'null.is-not-null');
+            return $this->failure($val, 'null.failure.is-not-null');
         } else {
             return $this->success($val, 'null.success.is-null');
         }
@@ -77,7 +59,7 @@ class NullValidator extends AbstractValidator
     protected function validateIsNotNull($val)
     {
         if ($val === null) {
-            return $this->failure($val, 'null.is-null');
+            return $this->failure($val, 'null.failure.is-null');
         } else {
             return $this->success($val, 'null.success.is-not-null');
         }
@@ -89,8 +71,8 @@ class NullValidator extends AbstractValidator
     protected function messages()
     {
         return [
-            'null.is-null'      => 'The value can not be null.',
-            'null.is-not-null'  => 'The value must be null.',
+            'null.failure.is-null'      => 'The value can not be null.',
+            'null.failure.is-not-null'  => 'The value must be null.',
             'null.success.is-not-null'      => 'The value is not null.',
             'null.success.is-null'          => 'The value is null'
         ];

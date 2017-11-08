@@ -13,15 +13,19 @@ Data validation.
     -   [Available validators](#available-validators)
     - ~~[Choice](#choice-validator)~~
     - ~~[Color](#color-validator)~~
-    - ~~[Email](#email-validator)~~
+    - [Date](#date-validator) 
+    - [Email](#email-validator)
     - [Empty](#empty-validator)
     - ~~[Ip](#ip-validator)~~
+    - [Filesize](#filesize-validator)
+    - [Filetype](#filetype-validator)
     - [Length](#length-validator)
     - [Null](#null-validator)
     - ~~[Password](#password-validator)~~
     - ~~[Phone](#phone-validator)~~
     - [Regexp](#regexp-validator)
-    - ~~[Url](#url-validator)~~
+    - [Url](#url-validator)
+-		[Validation Results](#validation-results)
 -   [Development](#development)
     -   [Development dependencies](#development-dependencies)
     -   [Coding Style](#coding-style)
@@ -39,6 +43,10 @@ $ composer require locomotivemtl/charcoal-validator
 ## Dependencies
 
 -   `PHP 5.6+`
+- `ext-mb` 
+	- For multibytes (unicode) string length validation.
+- `ext-fileinfo`
+	- For reading file's mimetype information. 
 
 # Example usage
 
@@ -77,22 +85,22 @@ The runner is the main interface to all validations. Its goal is to link various
 By default, `results()`, `errors()`, `warnings()` and `infos()` return only invalid results (failed validations). It is possible to also retrieve skipped results and valid results with:
 
 ```php
-$ignoreSkipped = false;
-$ignoreValid = false;
-$results = $validatorRunner->results($ignoreSkipped, $ignoreValid);
+$returnSkipped = true;
+$returnValid = true;
+$results = $validatorRunner->results($returnSkipped, $returnValid);
 ```
 
 ## Runner options
 
 Validation runners are stateless; all options must be passed directly to the constructor.
 
-The only options available are the different types of validators to use
+The only options available are the different types of validators to use. See the [example](#)
 
 # Validators
 
 Every validator is stateless, all _options_ must be passed directly to the constructor.
 
-Every validator have only one method: `validate($val)`. It always returns a _ValidationResult_ object.
+Every validator have only one method: `validate($val)`. It can also be invoked directly. It always returns a _ValidationResult_ object.
 
 ## Available validators
 
@@ -109,7 +117,7 @@ Every validator have only one method: `validate($val)`. It always returns a _Val
 - ~~[Password](#password-validator)~~
 - ~~[Phone](#phone-validator)~~
 - [Regexp](#regexp-validator)
-- ~~[Url](#url-validator)~~
+- [Url](#url-validator)
 
 ## Date Validator
 
@@ -119,8 +127,40 @@ The date validator ensures a value is a date-compatible string or a DateTime obj
 
 | Option            | Type      | Default       | Description |
 | ----------------- | --------- | ------------- | ----------- |
-| **min**           | `integer` | `0`           | The minimum date. If 0, empty or null, do not check.
-| **max**           | `integer` | `0`           | The maximum date. If 0, empty or null, do not check.
+| **min**           | `integer` | `0`           | The minimum date. If 0, empty or null, then there is no minimal constraint.
+| **max**           | `integer` | `0`           | The maximum date. If 0, empty or null, then there is no maximal constraint.
+| **check_type**    | `bolean`  | `true`        | Whether to fail on invalid date type (if true), or skip (if false).
+
+### Result messages
+
+| Code                            | Description |
+| --------------------------------| ----------- |
+| **date.failure.min**            | Failure if the given date is before than than the minimal constraint.
+| **date.failure.max**            | Failure if the given date is after the maximal constraint.
+| **date.failure.invalid-type**   | Failure f the given value is not a valid date. (`check_type` is true).
+| **date.skipped.invaid-type**    | Skipped if the given value is not a valid date. (`check_type` is false).
+| **date.skipped.empty-val**      | Skipped if the given value is null or empty.
+| **date.success**                | Success if all validation (min, max, and date type) pass.
+
+## Email Validator
+
+The email validator ensures a value is a proper email address.
+
+### Options
+
+| Option            | Type      | Default       | Description |
+| ----------------- | --------- | ------------- | ----------- |
+| **mx**            | `boolean` | `false`           | Additional MX record validation.
+
+### Result messages
+
+| Code                            | Description |
+| --------------------------------| ----------- |
+| **email.failure.invalid-type**  | Failure if the given value is not a string or can't be cast to string.
+| **email.failure.invalid-email** | Failure if the given string is not a valid email.
+| **email.failure.invalid-mx**    | Failure if the MX resolution fails.
+| **email.skipped.empty-val**     | Skipped if the given value is null or empty.
+| **email.success**               | Success if all validation (type, email and mx, if applicable) pass.
 
 ## Empty Validator
 
@@ -132,14 +172,14 @@ The empty validator ensures a value is **not** "empty". In PHP, _empty_ means `'
 | ----------------- | --------- | ------------- | ----------- |
 | **require_empty** | `boolean` | `false`       | Set to `true` to ensure value **is** empty.
 
-### Messages
+### Result Messages
 
-| Message                         | Description |
+| Code                            | Description |
 | --------------------------------| ----------- |
-| **empty.failure.is-empty**      |
-| **empty.failure.is-not-empty**  |
-| **empty.success.is-empty**      |
-| **empty.success.is-not-empty**  |
+| **empty.failure.is-empty**      | Failure if the given value is empty. (`require_empty` is false, default).
+| **empty.failure.is-not-empty**  | Failure if the given value is not empty (`require_empty` is true).
+| **empty.success.is-empty**      | Success if the given value is empty. (`require_empty` is true).
+| **empty.success.is-not-empty**  | Success if the given value is not empty. (`require_empty` is false, default).
 
 ## Length Validator
 
@@ -147,7 +187,7 @@ The length validator ensures a string (or a _string-object_) is of a certain len
 
 This validator skips null or empty strings. Use the [Null Validator](#null-validator) or the [Empty Validator](#empty-validator) to check for those cases, if need.
 
-This validator works with unicode by default (using `mb_strlen`). It can be disabled by setting the `unicode` option to false.
+This validator works with unicode by default (using `mb_strlen` for comparison). It can be disabled by setting the `unicode` option to false.
 
 ### Options
 
@@ -159,11 +199,11 @@ This validator works with unicode by default (using `mb_strlen`). It can be disa
 
 > Using the `unicode` flag uses the `mb_strlen` to calculate strin length. Therefore, the `mb` PHP extension is required.
 
-### Messages
+### Result messages
 
-| Message                         | Description |
+| Code                            | Description |
 | --------------------------------| ----------- |
-| **length.failure.min**          |
+| **length.failure.min**          | Failure if the given value is longer than minimal constraint.
 | **length.failure.max**          |
 | **length.skipped.no-min-max**   |
 | **length.skipped.empty-val**    |
@@ -182,7 +222,7 @@ It can also performs the opposite validation (ensuring a value **is** _null_) by
 | ----------------- | --------- | ------------- | ----------- |
 | **require_null**  | `boolean` | `false`       | Set to `true` to ensure value **is** null.
 
-### Messages
+### Result messages
 
 | Message                         | Description |
 | --------------------------------| ----------- |
@@ -257,12 +297,11 @@ The Charcoal-View module follows the Charcoal coding-style:
 
 > Coding style validation / enforcement can be performed with `composer phpcs`. An auto-fixer is also available with `composer phpcbf`.
 
-> This module should also throw no error when running `phpstan analyse -l7 src/`.
+> This module should also throw no error when running `phpstan analyse -l7 src/` 👍.
 
 ## Authors
 
 -   Mathieu Ducharme <mat@locomotive.ca>
-
 
 # License
 

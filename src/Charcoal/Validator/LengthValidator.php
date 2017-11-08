@@ -3,8 +3,7 @@
 namespace Charcoal\Validator;
 
 // Local depenencies
-use Charcoal\Validator\AbstractValidator;
-use Charcoal\Validator\ValidationResult;
+use Charcoal\Validator\Validator as AbstractValidator;
 
 /**
  * Length validator ensures a string is of a certain length.
@@ -39,65 +38,14 @@ class LengthValidator extends AbstractValidator
     public function __construct(array $data = [])
     {
         if (isset($data['min'])) {
-            $this->setMin($data['min']);
+            $this->min = intval($data['min']);
         }
         if (isset($data['max'])) {
-            $this->setMax($data['max']);
+            $this->max = intval($data['max']);
         }
         if (isset($data['unicode'])) {
-            $this->setUnicode($data['unicode']);
+            $this->unicode = !!$data['unicode'];
         }
-    }
-
-    /**
-     * @param integer $min The minimum allowed length. (0 = no limit).
-     * @return void
-     */
-    private function setMin($min)
-    {
-        $this->min = intval($min);
-    }
-
-    /**
-     * @return integer
-     */
-    private function min()
-    {
-        return $this->min;
-    }
-
-    /**
-     * @param boolean $max The maximum allowed length . (0 = no limit).
-     * @return void
-     */
-    private function setMax($max)
-    {
-        $this->max = intval($max);
-    }
-
-    /**
-     * @return integer
-     */
-    private function max()
-    {
-        return $this->max;
-    }
-
-    /**
-     * @param string $unicode The unicode (multibytes) flag.
-     * @return  void
-     */
-    private function setUnicode($unicode)
-    {
-        $this->unicode = !!$unicode;
-    }
-
-    /**
-     * @return boolean
-     */
-    private function unicode()
-    {
-        return $this->unicode;
     }
 
     /**
@@ -106,44 +54,65 @@ class LengthValidator extends AbstractValidator
      */
     public function validate($val)
     {
-        if (!$this->min() && !$this->max()) {
+        if (!$this->min && !$this->max) {
             return $this->skip($val, 'length.skipped.no-min-max');
         }
 
         // Null values and empty strings should be handled by different validators.
-        if ($val === null || $val === '') {
+        if ($val === null) {
             return $this->skip($val, 'length.skipped.empty-val');
         }
 
+        // Non-string value should be handled by different validators.
         if (!is_scalar($val) && !(is_object($val) && method_exists($val, '__toString'))) {
             return $this->skip($val, 'length.skipped.invalid-type');
         }
 
         $val = (string)$val;
 
-        if ($this->min()) {
-            if ($this->unicode()) {
-                $valid = (mb_strlen($val) >= $this->min());
-            } else {
-                $valid = (strlen($val) >= $this->min());
-            }
-            if (!$valid) {
-                return $this->failure($val, 'length.failure.min');
-            }
+        if ($this->validateMin($val) === false) {
+            return $this->failure($val, 'length.failure.min');
         }
 
-        if ($this->max()) {
-            if ($this->unicode()) {
-                $valid = (mb_strlen($val) <= $this->max());
-            } else {
-                $valid = (strlen($val) <= $this->max());
-            }
-            if (!$valid) {
-                return $this->failure($val, 'length.failure.max');
-            }
+        if ($this->validateMax($val) === false) {
+            return $this->failure($val, 'length.failure.max');
         }
 
         return $this->success($val, 'length.success');
+    }
+
+    /**
+     * @param string $val The string to validate length agains minimal constraint.
+     * @return boolean
+     */
+    private function validateMin($val)
+    {
+        if ($this->min) {
+            if ($this->unicode) {
+                return (mb_strlen($val) >= $this->min);
+            } else {
+                return (strlen($val) >= $this->min);
+            }
+        } else {
+            return true;
+        }
+    }
+
+    /**
+     * @param string $val The string to validate length against maximal constraint.
+     * @return boolean
+     */
+    private function validateMax($val)
+    {
+        if ($this->max) {
+            if ($this->unicode) {
+                return (mb_strlen($val) <= $this->max);
+            } else {
+                return (strlen($val) <= $this->max);
+            }
+        } else {
+            return true;
+        }
     }
 
     /**
@@ -152,12 +121,12 @@ class LengthValidator extends AbstractValidator
     protected function messages()
     {
         return [
-            'length.failure.min'            => sprintf('The value must be at least %s characters.', $this->min()),
-            'length.failure.max'            => sprintf('The value must be a maximum of %s characters.', $this->max()),
+            'length.failure.min'            => sprintf('The value must be at least %s characters.', $this->min),
+            'length.failure.max'            => sprintf('The value must be a maximum of %s characters.', $this->max),
             'length.skipped.no-min-max'     => 'Length validation skipped, no min or max defined.',
             'length.skipped.empty-val'      => 'Length validation skipped, value is empty.',
             'length.skipped.invalid-type'   => 'Length validation skipped, value not a string.',
-            'length.success'                => sprintf('The value is between %s and %s characters.', $this->min(), $this->max())
+            'length.success'                => sprintf('The value is between %s and %s characters.', $this->min, $this->max)
         ];
     }
 }

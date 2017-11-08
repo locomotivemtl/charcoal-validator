@@ -25,12 +25,32 @@ class NullValidatorTest extends PHPUnit_Framework_TestCase
         $this->doTestIsNullValidator($v);
     }
 
+    public function testNullReturnCode()
+    {
+        $v = new NullValidator([
+            'require_null' => true
+        ]);
+        $this->assertEquals('null.success.is-null', $v(null)->code());
+        $this->assertEquals('null.failure.is-not-null', $v('foo')->code());
+    }
+
     public function testNotNull()
     {
         $v = new NullValidator([
             'require_null' => false
+// default
         ]);
         $this->doTestIsNotNullValidator($v);
+    }
+
+    public function testNotNullReturnCode()
+    {
+        $v = new NullValidator([
+            'require_null' => false
+// default
+        ]);
+        $this->assertEquals('null.failure.is-null', $v(null)->code());
+        $this->assertEquals('null.success.is-not-null', $v('foo')->code());
     }
 
     protected function doTestIsNullValidator(NullValidator $v)

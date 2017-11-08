@@ -9,8 +9,7 @@ use DateTimeInterface;
 use DateTime;
 
 // Local depenencies
-use Charcoal\Validator\AbstractValidator;
-use Charcoal\Validator\ValidationResult;
+use Charcoal\Validator\Validator as AbstractValidator;
 
 /**
  * Length validator ensures a string is of a certain length.
@@ -33,81 +32,26 @@ class DateValidator extends AbstractValidator
     private $max = null;
 
     /**
+     * Whether to return failure or skipped on type validation.
+     *
+     * @var boolean
+     */
+    private $checkType = true;
+
+    /**
      * @param array $data Constructor data.
      */
     public function __construct(array $data = [])
     {
         if (isset($data['min'])) {
-            $this->setMin($data['min']);
+            $this->min = $this->parseDate($data['min']);
         }
         if (isset($data['max'])) {
-            $this->setMax($data['max']);
+            $this->max = $this->parseDate($data['max']);
         }
-    }
-
-    /**
-     * @param string|DateTimeInterface $min The minimum allowed date.
-     * @throws InvalidArgumentException If the date/time is invalid.
-     * @return void
-     */
-    private function setMin($min)
-    {
-
-        if (is_string($min)) {
-            try {
-                $min = new DateTime($min);
-            } catch (Exception $e) {
-                throw new InvalidArgumentException(
-                    'Can not set min: '.$e->getMessage()
-                );
-            }
+        if (isset($data['check_type'])) {
+            $this->checkType = !!$data['check_type'];
         }
-        if (!($min instanceof DateTimeInterface)) {
-            throw new InvalidArgumentException(
-                'Invalid min'
-            );
-        }
-        $this->min = $min;
-    }
-
-    /**
-     * @return DateTimeInterface|null The minimum length.
-     */
-    private function min()
-    {
-        return $this->min;
-    }
-
-    /**
-     * @param string|DateTime $max The maximum allowed date.
-     * @throws InvalidArgumentException If the date/time is invalid.
-     * @return void
-     */
-    private function setMax($max)
-    {
-        if (is_string($max)) {
-            try {
-                $max = new DateTime($max);
-            } catch (Exception $e) {
-                throw new InvalidArgumentException(
-                    'Can not set max: '.$e->getMessage()
-                );
-            }
-        }
-        if (!($max instanceof DateTimeInterface)) {
-            throw new InvalidArgumentException(
-                'Invalid max'
-            );
-        }
-        $this->max = $max;
-    }
-
-    /**
-     * @return DateTimeInterface|null
-     */
-    private function max()
-    {
-        return $this->max;
     }
 
     /**
@@ -116,36 +60,30 @@ class DateValidator extends AbstractValidator
      */
     public function validate($val)
     {
-        if (!$this->min() && !$this->max()) {
-            return $this->skip($val, 'date.skipped.no-min-max');
-        }
-
         // Null values and empty strings should be handled by different validators.
         if ($val === null || $val === '') {
             return $this->skip($val, 'date.skipped.empty-val');
         }
 
-        if (is_string($val)) {
-            try {
-                $val= new DateTime($val);
-            } catch (Exception $e) {
-                return $this->failure($val, 'date.error.invalid-type');
+        try {
+            $val = $this->parseDate($val);
+        } catch (Exception $e) {
+            if ($this->checkType === true) {
+                return $this->failure($val, 'date.failure.invalid-type');
+            } else {
+                return $this->skip($val, 'date.skipped.invalid-type');
             }
         }
-        if (!($val instanceof DateTimeInterface)) {
-            return $this->failure($val, 'date.error.invalid-type');
-        }
 
-
-        if ($this->min()) {
-            $valid = $val >= $this->min();
+        if ($this->min) {
+            $valid = $val >= $this->min;
             if (!$valid) {
                 return $this->failure($val, 'date.failure.min');
             }
         }
 
-        if ($this->max()) {
-            $valid = $val <= $this->max();
+        if ($this->max) {
+            $valid = $val <= $this->max;
             if (!$valid) {
                 return $this->failure($val, 'date.failure.max');
             }
@@ -155,18 +93,42 @@ class DateValidator extends AbstractValidator
     }
 
     /**
+     * @param mixed $val The value to parse into a date.
+     * @throws InvalidArgumentException If the value can not be turned into a date object (if it isn't one already).
+     * @return DateTimeInterface
+     */
+    private function parseDate($val)
+    {
+        if (is_string($val)) {
+            try {
+                return new DateTime($val);
+            } catch (Exception $e) {
+                throw new InvalidArgumentException(
+                    'String is not a valid date.'
+                );
+            }
+        }
+        if (!($val instanceof DateTimeInterface)) {
+            throw new InvalidArgumentException('Invalid date.');
+        }
+
+        // If here, val is a DateTimeInterface.
+        return $val;
+    }
+
+    /**
      * @return string[]
      */
     protected function messages()
     {
-        $formattedMin = ($this->min() !== null) ? $this->min()->format('Y-m-d H:i:s'): '-';
-        $formattedMax = ($this->max() !== null) ? $this->max()->format('Y-m-d H:i;s') : '-';
+        $formattedMin = ($this->min !== null) ? $this->min->format('Y-m-d H:i:s'): '-';
+        $formattedMax = ($this->max !== null) ? $this->max->format('Y-m-d H:i;s') : '-';
         return [
+            'date.failure.invalid-type'   => 'The date is not valid.',
             'date.failure.min'            => sprintf('The date must be after "%s".', $formattedMin),
             'date.failure.max'            => sprintf('The date must be before "%s".', $formattedMax),
-            'date.skipped.no-min-max'     => 'Date validation skipped, no min or max defined.',
+            'date.skipped.invalid-type'   => 'Date validation skipped, value is not valid.',
             'date.skipped.empty-val'      => 'Date validation skipped, value is empty.',
-            'date.error.invalid-type'   => 'Date validation skipped, value not a date-time.',
             'date.success'                => 'The date is valid.'
         ];
     }
