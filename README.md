@@ -1,146 +1,169 @@
+
 Charcoal Validator
 ==================
 
-Data validation.
+Powerful data validation.
 
 # Table of content
 
--   [How to install](#how-to-install)
-    -   [Dependencies](#dependencies)
--   [Example usage](#example-usage)
--   [The runner](#the-runner)
--   [Validators](#validators)
-    -   [Available validators](#available-validators)
-    - ~~[Choice](#choice-validator)~~
-    - ~~[Color](#color-validator)~~
-    - [Date](#date-validator) 
-    - [Email](#email-validator)
-    - [Empty](#empty-validator)
-    - ~~[Ip](#ip-validator)~~
-    - [Filesize](#filesize-validator)
-    - [Filetype](#filetype-validator)
-    - [Length](#length-validator)
-    - [Null](#null-validator)
-    - ~~[Password](#password-validator)~~
-    - ~~[Phone](#phone-validator)~~
-    - [Regexp](#regexp-validator)
-    - [Url](#url-validator)
--		[Validation Results](#validation-results)
--   [Development](#development)
-    -   [Development dependencies](#development-dependencies)
-    -   [Coding Style](#coding-style)
-    -   [Authors](#authors)
-    -   [Changelog](#changelog)
+- [How to install](#how-to-install)
+    - [Dependencies](#dependencies)
+- [Example usage](#example-usage)
+- [The validator](#the-validator)
+- [Rules](#rules)
+    - ~~[Choice](#choice-rule)~~
+    - ~~[Color](#color-rule)~~
+    - [Date](#date-rule)
+    - [Email](#email-rule)
+    - [Empty](#empty-rule)
+    - ~~[Ip](#ip-rule)~~
+    - [Filesize](#filesize-rule)
+    - [Filetype](#filetype-rule)
+    - [Length](#length-rule)
+    - [Null](#null-rule)
+    - ~~[Password](#password-rule)~~
+    - ~~[Phone](#phone-rule)~~
+    - [Regexp](#regexp-rule)
+    - [Url](#url-rule)
+- [Validation Results](#validation-results)
+- [Development](#development)
+    - [Development dependencies](#development-dependencies)
+    - [Coding Style](#coding-style)
+    - [Authors](#authors)
+    - [Changelog](#changelog)
 
 # How to install
 
-The preferred (and only supported) way of installing charcoal-validator is with **composer**:
+The preferred (and only supported) way of installing charcoal-rule is with **composer**:
 
 ```shell
-$ composer require locomotivemtl/charcoal-validator
+composer require locomotivemtl/charcoal-rule
 ```
 
 ## Dependencies
 
--   `PHP 5.6+`
-- `ext-mb` 
-	- For multibytes (unicode) string length validation.
+- `PHP 7.2+`
+- `ext-json`
+ - For result serialization.
+- `ext-mb`
+  - For multibytes (unicode) string length validation.
 - `ext-fileinfo`
-	- For reading file's mimetype information. 
+  - For reading file's mimetype information.
 
 # Example usage
 
 ```php
-$validatorRunner = new ValidatorRunner([
-	'errors' => [
-		new NullValidator(),
-		new LengthValidator([
-			'min' => 3,
-			'max' => 200
-		])
-	],
-	'warnings' => [
-	    new LengthValidator([
-	        'max' => 150
-	    ])
-	]
+
+$validator = new Validator([
+	new NullRule(),
+	new LengthRule([ 'min' => 3, 'max' => 200 ])
+],
+[
+	new LengthRule([ 'max' => 150 ])
 ]);
 
-$stringToValidate = 'foobar'
-$result = $validatorRunner->validate($stringToValidate);
-echo $validatorRunner->isValid();
+$stringToValidate = 'foobar';
+$result = $validator($stringToValidate);
+echo $result->isValid();
 ```
 
-# The Runner
+# The Validator
 
-The runner is the main interface to all validations. Its goal is to link various validators to perform series of validations in a unified way. It also allows to split the validations by level (_error_, _warning_ or _info_). It has the following interface:
+The validator is the main interface to all validations. Its goal is to link various validators to perform series of  validations in a unified way. It also allows to split the validations by level (_error_, _warning_ or _info_).
 
-- `validate($val)`
-- `results()`
-    - `errors()`
-    - `warnings()`
-    - `infos()`
-- `isValid()`
+It has a single function, `validate()`, which is also invokable, and returns a `Validation` object.
 
-By default, `results()`, `errors()`, `warnings()` and `infos()` return only invalid results (failed validations). It is possible to also retrieve skipped results and valid results with:
-
-```php
-$returnSkipped = true;
-$returnValid = true;
-$results = $validatorRunner->results($returnSkipped, $returnValid);
+  ```php
+public function __construct(
+	array $errorRules,
+	array $warningRules,
+	array $infoRules
+);
+public function __invoke($val): Validation;
 ```
 
-## Runner options
+## The Validation object
+
+The `Validation` object is a collection of results (`\Charcoal\Validator\Result`) for each validation levels.  It is typically not instantiated directly, but returned from invoking a `Validator` instance.
+
+  ```php
+public function results(
+	  ?string $level=null,
+	  bool $returnFailures=true,
+	  bool $returnSkipped=false,
+	  bool $returnSuccess=false
+) : array;
+public function isValid(?string $level=null) : bool;
+public function isSkipped(): bool;
+```
+
+
+## Validator options
 
 Validation runners are stateless; all options must be passed directly to the constructor.
 
-The only options available are the different types of validators to use. See the [example](#)
+The only options available are the different types of rules to use. See the [example](#)
 
-# Validators
+# Rules
 
-Every validator is stateless, all _options_ must be passed directly to the constructor.
+Every rule is stateless, all _options_ must be passed directly to the constructor.
 
-Every validator have only one method: `validate($val)`. It can also be invoked directly. It always returns a _ValidationResult_ object.
+Every rule have only one public method: `process($val)`, which can also be invoked directly.
+It always returns a `Result` object.
 
-## Available validators
+## Result
 
-- ~~[Choice](#choice-validator)~~
-- ~~[Color](#color-validator)~~
-- [Date](#date-validator)
-- [Email](#email-validator)
-- [Empty](#empty-validator)
-- [Filesize](#filesize-validator)
-- [Filetype](#filetype-validator)
-- ~~[Ip](#ip-validator)~~
-- [Length](#length-validator)
-- [Null](#null-validator)
-- ~~[Password](#password-validator)~~
-- ~~[Phone](#phone-validator)~~
-- [Regexp](#regexp-validator)
-- [Url](#url-validator)
+Result holds the result code after processing a rule on.a value. It is typically not instantiated directly, but returned from invoking a `Rule` instance.
+
+```php
+public function getType(): string;
+public function getCode(): string;
+public function getMessage(): string;
+public function isValid() : bool;
+public function isSkipped(): bool;
+```
+
+
+## Available rules
+
+- ~~[Choice](#choice-rule)~~
+- ~~[Color](#color-rule)~~
+- [Date](#date-rule)
+- [Email](#email-rule)
+- [Empty](#empty-rule)
+- [Filesize](#filesize-rule)
+- [Filetype](#filetype-rule)
+- ~~[Ip](#ip-rule)~~
+- [Length](#length-rule)
+- [Null](#null-rule)
+- ~~[Password](#password-rule)~~
+- ~~[Phone](#phone-rule)~~
+- [Regexp](#regexp-rule)
+- [Url](#url-rule)
 
 ## Date Validator
 
-The date validator ensures a value is a date-compatible string or a DateTime object and, optionally, in a specific range between `min` and `max`.
+The date validator ensures a value is a date-compatible string or a DateTime object and, optionally, in a specific
+range between `min` and `max`.
 
 ### Options
 
-| Option            | Type      | Default       | Description |
-| ----------------- | --------- | ------------- | ----------- |
-| **min**           | `integer` | `0`           | The minimum date. If 0, empty or null, then there is no minimal constraint.
-| **max**           | `integer` | `0`           | The maximum date. If 0, empty or null, then there is no maximal constraint.
-| **check_type**    | `bolean`  | `true`        | Whether to fail on invalid date type (if true), or skip (if false).
+| Option         | Type      | Default     | Description |
+| -------------- | --------- | ----------- | ----------- |
+| **min** | `integer` | `0`         | The minimum date. If 0, empty or null, then there is no minimal constraint.
+| **max** | `integer` | `0`         | The maximum date. If 0, empty or null, then there is no maximal constraint.
+| **checkType** | `bolean`  | `true`      | Whether to fail on invalid date type (if true), or skip (if false).
 
 ### Result messages
 
 | Code                            | Description |
 | --------------------------------| ----------- |
-| **date.failure.min**            | Failure if the given date is before than than the minimal constraint.
-| **date.failure.max**            | Failure if the given date is after the maximal constraint.
-| **date.failure.invalid-type**   | Failure f the given value is not a valid date. (`check_type` is true).
-| **date.skipped.invaid-type**    | Skipped if the given value is not a valid date. (`check_type` is false).
-| **date.skipped.empty-val**      | Skipped if the given value is null or empty.
-| **date.success**                | Success if all validation (min, max, and date type) pass.
+| **date.failure.min** | Failure if the given date is before than than the minimal constraint.
+| **date.failure.max** | Failure if the given date is after the maximal constraint.
+| **date.failure.invalid-type** | Failure f the given value is not a valid date. (`check_type` is true).
+| **date.skipped.invalid-type** | Skipped if the given value is not a valid date. (`check_type` is false).
+| **date.skipped.empty-val** | Skipped if the given value is null or empty.
+| **date.success** | Success if all validation (min, max, and date type) pass.
 
 ## Email Validator
 
@@ -150,21 +173,23 @@ The email validator ensures a value is a proper email address.
 
 | Option            | Type      | Default       | Description |
 | ----------------- | --------- | ------------- | ----------- |
-| **mx**            | `boolean` | `false`           | Additional MX record validation.
+| **mx** | `boolean` | `false`       | Additional MX record validation.
 
 ### Result messages
 
 | Code                            | Description |
 | --------------------------------| ----------- |
-| **email.failure.invalid-type**  | Failure if the given value is not a string or can't be cast to string.
+| **email.failure.invalid-type** | Failure if the given value is not a string or can't be cast to string.
 | **email.failure.invalid-email** | Failure if the given string is not a valid email.
-| **email.failure.invalid-mx**    | Failure if the MX resolution fails.
-| **email.skipped.empty-val**     | Skipped if the given value is null or empty.
-| **email.success**               | Success if all validation (type, email and mx, if applicable) pass.
+| **email.failure.invalid-mx** | Failure if the MX resolution fails.
+| **email.skipped.empty-val** | Skipped if the given value is null or empty.
+| **email.success** | Success if all validation (type, email and mx, if applicable) pass.
 
 ## Empty Validator
 
-The empty validator ensures a value is **not** "empty". In PHP, _empty_ means `''`, `[]` (an empty array), `0`, `'0'`, `false` or `null`. Any object instance is not considered empty.
+The empty validator ensures a value is **not** "empty".
+In PHP, _empty_ means `''`, `[]` (an empty array), `0`, `'0'`, `false` or `null`.
+Any object instance is not considered empty.
 
 ### Options
 
@@ -176,16 +201,16 @@ The empty validator ensures a value is **not** "empty". In PHP, _empty_ means `'
 
 | Code                            | Description |
 | --------------------------------| ----------- |
-| **empty.failure.is-empty**      | Failure if the given value is empty. (`require_empty` is false, default).
-| **empty.failure.is-not-empty**  | Failure if the given value is not empty (`require_empty` is true).
-| **empty.success.is-empty**      | Success if the given value is empty. (`require_empty` is true).
-| **empty.success.is-not-empty**  | Success if the given value is not empty. (`require_empty` is false, default).
+| **empty.failure.is-empty** | Failure if the given value is empty. (`require_empty` is false, default).
+| **empty.failure.is-not-empty** | Failure if the given value is not empty (`require_empty` is true).
+| **empty.success.is-empty** | Success if the given value is empty. (`require_empty` is true).
+| **empty.success.is-not-empty** | Success if the given value is not empty. (`require_empty` is false, default).
 
 ## Length Validator
 
 The length validator ensures a string (or a _string-object_) is of a certain length.
 
-This validator skips null or empty strings. Use the [Null Validator](#null-validator) or the [Empty Validator](#empty-validator) to check for those cases, if need.
+This validator skips null or empty strings. Use the [Null Validator](#null-rule) or the [Empty Validator](#empty-rule) to check for those cases, if need.
 
 This validator works with unicode by default (using `mb_strlen` for comparison). It can be disabled by setting the `unicode` option to false.
 
@@ -193,9 +218,9 @@ This validator works with unicode by default (using `mb_strlen` for comparison).
 
 | Option            | Type      | Default       | Description |
 | ----------------- | --------- | ------------- | ----------- |
-| **min**           | `integer` | `0`           | The minimum length. If 0, do not check.
-| **max**           | `integer` | `0`           | The maximum length. If 0, do not check.
-| **unicode**       | `boolean` | `true`           | Count unicode (multibytes) character as only 1 character.
+| **min** | `integer` | `0`           | The minimum length. If 0, do not check.
+| **max** | `integer` | `0`           | The maximum length. If 0, do not check.
+| **unicode** | `boolean` | `true`           | Count unicode (multibytes) character as only 1 character.
 
 > Using the `unicode` flag uses the `mb_strlen` to calculate strin length. Therefore, the `mb` PHP extension is required.
 
@@ -203,12 +228,12 @@ This validator works with unicode by default (using `mb_strlen` for comparison).
 
 | Code                            | Description |
 | --------------------------------| ----------- |
-| **length.failure.min**          | Failure if the given value is longer than minimal constraint.
-| **length.failure.max**          |
-| **length.skipped.no-min-max**   |
-| **length.skipped.empty-val**    |
+| **length.failure.min** | Failure if the given value is longer than minimal constraint.
+| **length.failure.max** |
+| **length.skipped.no-min-max** |
+| **length.skipped.empty-val** |
 | **length.skipped.invalid-type** |
-| **length.success**              |
+| **length.success** |
 
 ## Null Validator
 
@@ -220,36 +245,125 @@ It can also performs the opposite validation (ensuring a value **is** _null_) by
 
 | Option            | Type      | Default       | Description |
 | ----------------- | --------- | ------------- | ----------- |
-| **require_null**  | `boolean` | `false`       | Set to `true` to ensure value **is** null.
+| **require_null** | `boolean` | `false`       | Set to `true` to ensure value **is** null.
 
 ### Result messages
 
 | Message                         | Description |
 | --------------------------------| ----------- |
-| **null.failure.is-null**        |
-| **null.failure.is-not-null**    |
-| **null.success.is-null**        |
-| **null.success.is-not-null**    |
+| **null.failure.is-null** |
+| **null.failure.is-not-null** |
+| **null.success.is-null** |
+| **null.success.is-not-null** |
 
-## Regexp Validator
+## Pattern Validator
 
-The regexp validator ensures a string (or a _string-object_) is of a certain length.
+The pattern validator ensures a string (or a _string-object_) is of a certain length.
 
 ### Options
 
 | Option            | Type      | Default       | Description |
 | ----------------- | --------- | ------------- | ----------- |
-| **pattern**       | `string`  | `''`          |
+| **pattern** | `string`  | `''`          | The regexp.
 
 ### Messages
 
 | Message                         | Description |
 | --------------------------------| ----------- |
-| **regexp.failure.no-match**     |
-| **regexp.skipped.no-pattern**   |
-| **regexp.skipped.empty-val**    |
+| **regexp.failure.no-match** |
+| **regexp.skipped.no-pattern** |
+| **regexp.skipped.empty-val** |
 | **regexp.skipped.invalid-type** |
-| **regexp.success**              |
+| **regexp.success** |
+
+# Custom Rules
+
+It's very simple to add a custom rule to a Validator constructor. The abstract `\Charcoal\Validator\Rule` can be  extended to create custom rule service. Alternatively callback rules are supported as long as they have the  following signature:
+
+```php
+use \Charcoal\Validator\Result;
+function(mixed $value) : Result;
+```
+
+Here is an example of a callback custom rule:
+
+```php
+use \Charcoal\Validator\Validator;
+use \Charcoal\Validator\NullRule;
+use \Charcoal\Validator\Result;
+
+$validator = new Validator([
+	new NullRule(),
+	function($value) : Result  {
+		if (!is_string($value)) {
+			 return new Result(
+				 Result::TYPE_SKIPPED,
+				 'fullstop.skipped.invalid-type',
+				 'Value is not a string.'
+				);
+		}
+		if (substr($val, -1) !== '.') {
+			return new Result(
+				Result::TYPE_FAILURE,
+				'fullstop.error.no-fullstop',
+				'The sentence does not end with a full stop.'
+			);
+		} else {
+			return new Result(
+				Result::TYPE_SUCCESS,
+				'fullstop.success.fullstop',
+				'The sentence ends with a full stop.'
+			);
+		}
+	}
+]);
+$validationResult = $validator($val);
+$success = $validationResult->isValid();
+$results = $validationResult->results(Validator::LEVEL_ERROR);
+```
+
+It is also possible to use an instance of `Rule`, which provides some helper functions to  generate responses and messages:
+
+```php
+use \Charcoal\Validator\Validator;
+use \Charcoal\Validator\NullRule;
+use \Charcoal\Validator\Rule;
+use \Charcoal\Validator\Result;
+
+class FullStopRule extends Rule
+{
+	public function process($val): Result {
+		if (!is_string($val)) {
+			return $this->skip('fullstop.skipped.invalid-type');
+		}
+		if (substr($val, -1) !== '.') {
+			return $this->failure('fullstop.error.no-fullstop');
+		} else {
+			return $this->success('fullstop.success.fullstop');
+		}
+
+	}
+
+	public function messages(): array
+	{
+		return [
+			'fullstop.skipped.invalid-type' => '',
+			'fullstop.error.no-fullstop' => '',
+			'fullstop.success.fullstop' => ''
+		];
+	}
+};
+
+$validator = new Validator([
+	new NullRule(),
+	new FullStopRule()
+]);
+
+$validationResult = $validator($val);
+$success = $validationResult->isValid();
+$results = $validationResult->results(Validator::LEVEL_ERROR);
+```
+
 
 # Development
 
@@ -265,43 +379,39 @@ Run tests with
 $ composer test
 ```
 
-## API documentation
-
--   The auto-generated `phpDocumentor` API documentation is available at [https://locomotivemtl.github.io/charcoal-validator/docs/master/](https://locomotivemtl.github.io/charcoal-validator/docs/master/)
--   The auto-generated `apigen` API documentation is available at [https://codedoc.pub/locomotivemtl/charcoal-validator/master/](https://codedoc.pub/locomotivemtl/charcoal-validator/master/index.html)
-
 ## Development dependencies
 
--   `phpunit/phpunit`
--   `squizlabs/php_codesniffer`
--   `satooshi/php-coveralls`
+- `phpunit/phpunit`
+- `squizlabs/php_codesniffer`
+- `satooshi/php-coveralls`
 
 ## Continuous Integration
 
 | Service | Badge | Description |
 | ------- | ----- | ----------- |
-| [Travis](https://travis-ci.org/locomotivemtl/charcoal-validator) | [![Build Status](https://travis-ci.org/locomotivemtl/charcoal-validator.svg?branch=master)](https://travis-ci.org/locomotivemtl/charcoal-validator) | Runs code sniff check and unit tests. Auto-generates API documentation. |
-| [Scrutinizer](https://scrutinizer-ci.com/g/locomotivemtl/charcoal-validator/) | [![Scrutinizer Code Quality](https://scrutinizer-ci.com/g/locomotivemtl/charcoal-validator/badges/quality-score.png?b=master)](https://scrutinizer-ci.com/g/locomotivemtl/charcoal-validator/?branch=master) | Code quality checker. Also validates API documentation quality. |
-| [Coveralls](https://coveralls.io/github/locomotivemtl/charcoal-validator) | [![Coverage Status](https://coveralls.io/repos/github/locomotivemtl/charcoal-validator/badge.svg?branch=master)](https://coveralls.io/github/locomotivemtl/charcoal-validator?branch=master) | Unit Tests code coverage. |
-| [Sensiolabs](https://insight.sensiolabs.com/projects/5c21a1cf-9b21-41c8-82a8-90fbad808a20) | [![SensioLabsInsight](https://insight.sensiolabs.com/projects/5c21a1cf-9b21-41c8-82a8-90fbad808a20/mini.png)](https://insight.sensiolabs.com/projects/5c21a1cf-9b21-41c8-82a8-90fbad808a20) | Another code quality checker, focused on PHP. |
+| [Travis](https://travis-ci.org/locomotivemtl/charcoal-rule) | [![Build Status](https://travis-ci.org/locomotivemtl/charcoal-rule.svg?branch=master)](https://travis-ci.org/locomotivemtl/charcoal-rule) | Runs code sniff check and unit tests. Auto-generates API documentation. |
+| [Scrutinizer](https://scrutinizer-ci.com/g/locomotivemtl/charcoal-rule/) | [![Scrutinizer Code Quality](https://scrutinizer-ci.com/g/locomotivemtl/charcoal-rule/badges/quality-score.png?b=master)](https://scrutinizer-ci.com/g/locomotivemtl/charcoal-rule/?branch=master) | Code quality checker. Also validates API documentation quality. |
+| [Coveralls](https://coveralls.io/github/locomotivemtl/charcoal-rule) | [![Coverage Status](https://coveralls.io/repos/github/locomotivemtl/charcoal-rule/badge.svg?branch=master)](https://coveralls.io/github/locomotivemtl/charcoal-rule?branch=master) | Unit Tests code coverage. |
+| [Sensiolabs](https://insight.sensiolabs.com/projects/5c21a1cf-9b21-41c8-82a8-90fbad808a20) | [![SensioLabsInsight](https://insight.sensiolabs.com/projects/ /mini.png)](https://insight.sensiolabs.com/projects/5c21a1cf-9b21-41c8-82a8-90fbad808a20) | Another code quality checker, focused on PHP. |
 
 ## Coding Style
 
 The Charcoal-Validator module follows the Charcoal coding-style:
 
--   [_PSR-1_](https://github.com/php-fig/fig-standards/blob/master/accepted/PSR-1-basic-coding-standard.md)
--   [_PSR-2_](https://github.com/php-fig/fig-standards/blob/master/accepted/PSR-2-coding-style-guide.md)
--   [_PSR-4_](https://github.com/php-fig/fig-standards/blob/master/accepted/PSR-4-autoloader.md), autoloading is therefore provided by _Composer_.
--   [_phpDocumentor_](http://phpdoc.org/) comments.
--   Read the [phpcs.xml](phpcs.xml) file for all the details on code style.
+- [_PSR-4_](https://github.com/php-fig/fig-standards/blob/master/accepted/PSR-4-autoloader.md), autoloading is therefore provided by _Composer_.
 
-> Coding style validation / enforcement can be performed with `composer phpcs`. An auto-fixer is also available with `composer phpcbf`.
+- [_PSR-12_](https://github.com/php-fig/fig-standards/blob/master/accepted/PSR-12-extended-coding-style-guide.md)
+- [_phpDocumentor_](http://phpdoc.org/) comments.
+- Read the [phpcs.xml](phpcs.xml) file for all the details on code style.
 
-> This module should also throw no error when running `phpstan analyse -l7 src/` 👍.
+> Coding style validation / enforcement can be performed with `composer phpcs`.
+> An auto-fixer is also available with `composer phpcbf`.
+
+> This module should also throw no error when running `phpstan analyse --level=max src/ tests/` 👍.
 
 ## Authors
 
--   Mathieu Ducharme <mat@locomotive.ca>
+- [Locomotive](https://locomotive.ca)
 
 # License
 
